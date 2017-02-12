@@ -1,8 +1,6 @@
 import jdk.internal.util.xml.impl.ReaderUTF8;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -15,10 +13,30 @@ public class Server {
         try {
             serverSocket = new ServerSocket(2000); // поднимаем сервер
             Socket socket = serverSocket.accept();//accept - возвращает экземпляр клиента, который подключился к серверу
-            InputStream soccetInputStream = socket.getInputStream(); // байтовый поток
-            DataInputStream dataInputStream = new DataInputStream(soccetInputStream);
-            String message = dataInputStream.readUTF();
-            System.out.println(message);
+            InputStream  socketInputStream   = socket.getInputStream();
+            OutputStream socketOutputStream = socket.getOutputStream();
+
+            DataInputStream  dataInputStream = new DataInputStream (socketInputStream  );
+            DataOutputStream dataOutputStream = new DataOutputStream(socketOutputStream);
+
+            String line = null;
+            while(true) {
+                // Ожидание сообщения от клиента
+                line = dataInputStream.readUTF();
+                System.out.println("Client writes "+ line );
+                // Отсылаем клиенту обратно эту самую строку текста
+                dataOutputStream.writeUTF("Server receive text : " + line);
+                // Завершаем передачу данных
+                dataOutputStream.flush();
+                System.out.println();
+                if (line.equalsIgnoreCase("exit")) {
+                    // завершаем соединение
+                    socket.close();
+                    System.out.println();
+                    break;
+                }
+            }
+            System.exit(0);
         } catch (IOException e) {
             e.printStackTrace();
         }

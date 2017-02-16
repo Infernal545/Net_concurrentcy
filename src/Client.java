@@ -7,7 +7,9 @@ import java.net.Socket;
 public class Client {
     public static void main(String[] args) {
         try {
-            Socket socket = new Socket("localhost",2000); // подключение к серверу
+            String host = args[0];
+            int port = Integer.parseInt(args[1]);
+            Socket socket = new Socket(host,port); // подключение к серверу
 
             InputStream socketInputStream   = socket.getInputStream();
             OutputStream socketOutputStream = socket.getOutputStream();

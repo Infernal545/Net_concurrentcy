@@ -11,7 +11,8 @@ public class Server {
     public static void main(String[] args) {
         ServerSocket serverSocket = null;
         try {
-            serverSocket = new ServerSocket(2000); // поднимаем сервер
+            int port = Integer.parseInt(args[0]);
+            serverSocket = new ServerSocket(port); // поднимаем сервер
             Socket socket = serverSocket.accept();//accept - возвращает экземпляр клиента, который подключился к серверу
             InputStream  socketInputStream   = socket.getInputStream();
             OutputStream socketOutputStream = socket.getOutputStream();

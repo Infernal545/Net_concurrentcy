@@ -7,9 +7,10 @@ import java.net.Socket;
 public class Client {
     public static void main(String[] args) {
         try {
+            String host1 = "10.0.205.132";
             String host = args[0];
             int port = Integer.parseInt(args[1]);
-            Socket socket = new Socket(host,port); // подключение к серверу
+            Socket socket = new Socket(host1,7777); // подключение к серверу
 
             InputStream socketInputStream   = socket.getInputStream();
             OutputStream socketOutputStream = socket.getOutputStream();

@@ -1,4 +1,5 @@
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
 
 /**
@@ -6,7 +7,8 @@ import java.net.Socket;
  */
 public class Session implements Runnable {
 Socket socket;
-int threadNumber;
+ public static   int ClientNumber_=1;
+
 public Session(Socket socket){
     this.socket=socket;
 }
@@ -19,23 +21,35 @@ public Session(Socket socket){
 
         DataInputStream dataInputStream = new DataInputStream(socketInputStream);
         DataOutputStream dataOutputStream = new DataOutputStream(socketOutputStream);
-
+        ClientNumber_++;
         String line = null;
         while (true) {
-            // Ожидание сообщения от клиента
-            line = dataInputStream.readUTF();
-            System.out.println("Client writes " + line);
-            // Отсылаем клиенту обратно эту самую строку текста
-            dataOutputStream.writeUTF("Server receive text : " + line);
-            // Завершаем передачу данных
-            dataOutputStream.flush();
-            System.out.println();
-            if (line.equalsIgnoreCase("exit")) {
-                // завершаем соединение
-                socket.close();
+
+            if(dataInputStream.available()>0) {
+                // Ожидание сообщения от клиента
+                line = dataInputStream.readUTF();
+                System.out.println("Client writes " + line +
+                "\nAdress " + socket.getInetAddress().getHostAddress() + " port " + socket.getLocalPort());
+
+                // Отсылаем клиенту обратно эту самую строку текста
+                dataOutputStream.writeUTF("Server receive text : " + line);
+                // Завершаем передачу данных
+                dataOutputStream.flush();
                 System.out.println();
-                break;
+                if (line.equalsIgnoreCase("close")) {
+                    // завершаем соединение
+                    socket.close();
+                    System.out.println();
+                    break;
+                }
+                if (line.equalsIgnoreCase("exit")) {
+                    ClientNumber_--;
+                    System.out.println();
+                }
             }
+
+
+
         }
         System.exit(0);
     }

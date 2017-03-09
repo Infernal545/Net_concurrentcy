@@ -9,8 +9,23 @@ public class Client {
         try {
 
             String host = args[0];
-            int port = Integer.parseInt(args[1]);
-            Socket socket = new Socket(host,port); // подключение к серверу
+            int port ;
+            try {
+                port = Integer.parseInt(args[1]);
+            }
+
+            catch (NumberFormatException e) {
+                System.err.println("Client: Wrong port format. Should be integer");
+                return;
+            }
+            Socket socket;
+            try {
+                 socket= new Socket(host,port); // подключение к серверу
+            } catch (IOException e) {
+                System.err.println("Client: The error of creating a new socket");
+                return;
+            }
+
 
             InputStream socketInputStream   = socket.getInputStream();
             OutputStream socketOutputStream = socket.getOutputStream();
@@ -49,9 +64,12 @@ public class Client {
             dataOutputStream.close();
             isr.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Server is not available");
         }
 
+
+
     }
+
 
 }

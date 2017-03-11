@@ -35,8 +35,9 @@ public class Session implements Runnable {
                     dataOutputStream.writeUTF("Server receive text : " + line);
                     // Завершаем передачу данных
                     dataOutputStream.flush();
-                socket.close();
+
             }
+            socket.close();
 
         }
         catch (IOException e) {

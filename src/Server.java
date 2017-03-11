@@ -12,12 +12,21 @@ import java.net.Socket;
  */
 public class Server {
 
-    private static int ClientNumber_=0;
+    private volatile static int ClientNumber_=0;
+    static final Object lock = new Object();
     public static void threadStop()
     {
-        ClientNumber_--;
+        synchronized (lock) {
+            ClientNumber_--;
+            lock.notifyAll();
+        }
     }
-
+    public static void threadStart()
+    {
+        synchronized (lock) {
+            ClientNumber_++;
+        }
+    }
     public static void main(String[] args) {
         ServerSocket serverSocket = null;
         int port; // номер порта
@@ -58,24 +67,29 @@ public class Server {
         while (true) {
             try {
                 Socket socket = serverSocket.accept();//accept - возвращает экземпляр клиента, который подключился к
+                        try {
+                            if (ClientNumber_ >= maxClientNumber){
+                                synchronized (lock) {
+                                    lock.wait();
+                                }
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        Server.threadStart();
+                        OutputStream socketOutputStream = socket.getOutputStream();
+                        DataOutputStream dataOutputStream = new DataOutputStream(socketOutputStream);
+                        dataOutputStream.writeUTF("Server is available");
+                        dataOutputStream.flush();
+                        Session session = new Session(socket);
+                        Thread thread = new Thread(session);
+                        thread.start();
 
-                if (ClientNumber_ < maxClientNumber) {
-
-                    ClientNumber_++;
-                    OutputStream socketOutputStream = socket.getOutputStream();
-                    DataOutputStream dataOutputStream = new DataOutputStream(socketOutputStream);
-                    dataOutputStream.writeUTF("Server is available");
-                    dataOutputStream.flush();
-                    Session session = new Session(socket);
-                    Thread thread = new Thread(session);
-                    thread.start();
-
-                } else {
-                    OutputStream socketOutputStream = socket.getOutputStream();
+                   /* OutputStream socketOutputStream = socket.getOutputStream();
                     DataOutputStream dataOutputStream = new DataOutputStream(socketOutputStream);
                     dataOutputStream.writeUTF("Server is not available");
                     dataOutputStream.flush();
-                }
+                   */
             }
             catch (IOException e) {
                 System.err.println("Server is not available");

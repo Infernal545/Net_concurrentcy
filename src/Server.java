@@ -10,11 +10,22 @@ import java.net.Socket;
 /**
  * Created by 14Krishin on 10.02.2017.
  */
-public class Server {
+public class Server implements Runnable{
 
-    private volatile static int ClientNumber_=0;
-    static final Object lock = new Object();
-    public static void threadStop()
+    private volatile int maxClientNumber;
+    private volatile int ClientNumber_=0;
+    private int port;
+    private ServerSocket serverSocket;
+
+    private Object lock = new Object();
+
+    public Server (ServerSocket serverSocket, int port, int maxClientNumber){
+        this.serverSocket = serverSocket;
+        this.port = port;
+        this.maxClientNumber = maxClientNumber;
+    }
+
+    public void threadStop()
     {
         synchronized (lock) {
             ClientNumber_--;
@@ -22,82 +33,39 @@ public class Server {
         }
     }
 
-    public static void threadStart()
-    {
-        synchronized (lock) {
-            ClientNumber_++;
-        }
-    }
-    public static void main(String[] args) {
-        ServerSocket serverSocket = null;
-        int port; // номер порта
 
-        try {
-           port = Integer.parseInt(args[0]);
-        }
-
-        catch (NumberFormatException e) {
-            System.err.println("Server: Wrong port format. Should be integer");
-            return;
-        }
-
-        int maxClientNumber; // максимальное количество клиентов
-
-        try {
-            maxClientNumber = Integer.parseInt(args[1]);
-        }
-
-        catch (NumberFormatException e) {
-                System.err.println("Server: Wrong maximum client format. Should be integer");
-                return;
-        }
-
-        try {
-            serverSocket = new ServerSocket(port); // поднимаем сервер
-        }
-
-        catch (BindException e){
-            System.err.println("Port already in use");
-            return;
-        }
-
-        catch (IOException e) {
-            System.err.println("Server: The error of creating a new serverSocket");
-            return;
-        }
+    public void run() {
+        Channel channel = new Channel(maxClientNumber);
+        Dispatcher dispatcher = new Dispatcher(channel);
         while (true) {
             try {
                 Socket socket = serverSocket.accept();//accept - возвращает экземпляр клиента, который подключился к
                         try {
                            {
                                 synchronized (lock) {
-                                    if (ClientNumber_ == maxClientNumber) {
+                                    while (ClientNumber_ == maxClientNumber) {
                                         lock.wait();
                                     }
-                                        OutputStream socketOutputStream = socket.getOutputStream();
-                                        DataOutputStream dataOutputStream = new DataOutputStream(socketOutputStream);
+                                    OutputStream socketOutputStream = socket.getOutputStream();
+                                    DataOutputStream dataOutputStream = new DataOutputStream(socketOutputStream);
+
+                                    try {
                                         dataOutputStream.writeUTF("Server is available");
-                                        dataOutputStream.flush();
-                                        Server.threadStart();
-                                        Session session = new Session(socket);
-                                        Thread thread = new Thread(session);
-                                        thread.start();
-
-
-
-
+                                    } catch (IOException e) {
+                                        System.err.println("Client connection was reset");
+                                    }
+                                    dataOutputStream.flush();
+                                    Session session = new Session(socket,Server.this);
+                                    channel.put(session);
+                                    Thread thread = new Thread(dispatcher);
+                                    thread.start();
+                                    ClientNumber_++;
                                 }
                             }
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
 
-
-                   /* OutputStream socketOutputStream = socket.getOutputStream();
-                    DataOutputStream dataOutputStream = new DataOutputStream(socketOutputStream);
-                    dataOutputStream.writeUTF("Server is not available");
-                    dataOutputStream.flush();
-                   */
 
             }
             catch (IOException e) {

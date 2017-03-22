@@ -56,10 +56,6 @@ public class Client {
                     }
                 }
             }
-           /* else {
-                System.out.println("The server sent me this line :\n\t" + serverData);
-                socket.close();
-           }*/
             dataInputStream.close();
             dataOutputStream.close();
             isr.close();

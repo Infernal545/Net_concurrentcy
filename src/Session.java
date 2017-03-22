@@ -8,10 +8,12 @@ import java.net.Socket;
  */
 public class Session implements Runnable {
     private Socket socket;
+    private Server server;
     String name;
 
-    public Session(Socket socket){
+    public Session(Socket socket,Server server){
         this.socket=socket;
+        this.server = server;
         this.name="Adress " + socket.getInetAddress().getHostAddress() + " port " + socket.getLocalPort();
     }
 
@@ -44,7 +46,7 @@ public class Session implements Runnable {
             System.err.println("Connection "+ name + " was reset");
         }
         finally {
-            Server.threadStop();
+            server.threadStop();
         }
     }
 }

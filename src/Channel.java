@@ -5,7 +5,7 @@ import java.util.LinkedList;
  */
 public class  Channel <T> {
 
-    private final LinkedList<T> linkedList = new LinkedList<>();
+    private final LinkedList<T> queue = new LinkedList<>();
     private final static Object lock = new Object();
     private final int maxClientNumber;
 
@@ -15,14 +15,14 @@ public class  Channel <T> {
 
     void put(Runnable x) {
         synchronized (lock) {
-            while (maxClientNumber <= linkedList.size()) {
+            while (maxClientNumber == queue.size()) {
                 try {
                     lock.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            linkedList.addLast((T) x);
+            queue.addLast((T) x);
             lock.notifyAll();
         }
 
@@ -30,7 +30,7 @@ public class  Channel <T> {
 
    T take() {
         synchronized (lock) {
-            while (linkedList.isEmpty()) {
+            while (queue.isEmpty()) {
                 try {
                     lock.wait();
                 } catch (InterruptedException e) {
@@ -38,7 +38,12 @@ public class  Channel <T> {
                 }
             }
             lock.notifyAll();
-            return linkedList.removeFirst();
+            return queue.removeFirst();
+        }
+    }
+    int size() {
+        synchronized (lock) {
+            return queue.size();
         }
     }
 }

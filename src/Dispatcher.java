@@ -3,17 +3,16 @@
  */
 public class Dispatcher implements Runnable {
 
-    public static Channel<Runnable> channel;
+    private final Channel<Session> channel;
+    private final ThreadPool threadPool;
 
-    public Dispatcher(Channel channel) {
+    public Dispatcher(Channel<Session> channel, ThreadPool threadPool) {
         this.channel = channel;
+        this.threadPool = threadPool;
     }
 
     public void run() {
-        while (true) {
-            Runnable session = channel.take();
-            Thread thread = new Thread(session);
-            thread.start();
-        }
+        while (true)
+            threadPool.execute(channel.take());
     }
 }

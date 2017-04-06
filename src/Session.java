@@ -1,6 +1,4 @@
 import java.io.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
@@ -8,24 +6,25 @@ import java.net.Socket;
  */
 public class Session implements Runnable {
     private Socket socket;
-    private Server server;
+    private Host host;
     String name;
 
-    public Session(Socket socket,Server server){
+    public Session(Socket socket, Host host){
         this.socket=socket;
-        this.server = server;
+        this.host = host;
         this.name="Adress " + socket.getInetAddress().getHostAddress() + " port " + socket.getLocalPort();
     }
 
     @Override
     public void run() {
         try {
+            new DataOutputStream(socket.getOutputStream()).writeUTF("Host is available");
             InputStream socketInputStream = socket.getInputStream();
             OutputStream socketOutputStream = socket.getOutputStream();
 
             DataInputStream dataInputStream = new DataInputStream(socketInputStream);
             DataOutputStream dataOutputStream = new DataOutputStream(socketOutputStream);
-
+            host.threadStart();
             String line = "";
             while (!line.equals("exit")) {
                     // Ожидание сообщения от клиента
@@ -34,7 +33,7 @@ public class Session implements Runnable {
                             "\n" + name);
 
                     // Отсылаем клиенту обратно эту самую строку текста
-                    dataOutputStream.writeUTF("Server receive text : " + line);
+                    dataOutputStream.writeUTF("Host receive text : " + line);
                     // Завершаем передачу данных
                     dataOutputStream.flush();
 
@@ -46,7 +45,7 @@ public class Session implements Runnable {
             System.err.println("Connection "+ name + " was reset");
         }
         finally {
-            server.threadStop();
+            host.threadStop();
         }
     }
 }

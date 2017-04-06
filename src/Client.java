@@ -38,7 +38,7 @@ public class Client {
             BufferedReader keyboard = new BufferedReader(isr);
             String line = null;
             String serverData = dataInputStream.readUTF();
-            if (serverData.equals("Server is available")) {
+            if (serverData.equals("Host is available")) {
                 System.out.println("Write something");
                 System.out.println();
                 while (true) {
@@ -60,7 +60,7 @@ public class Client {
             dataOutputStream.close();
             isr.close();
         } catch (IOException e) {
-            System.err.println("Server is not available");
+            System.err.println("Host is not available");
         }
 
 
